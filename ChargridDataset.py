@@ -105,9 +105,11 @@ class ChargridDataset(Dataset):
         anchor_mask_label = self.anchor_mask_ground_truth[idx]
         anchor_coordinates_label = self.anchor_coordinates[idx]
         image = Image.fromarray(np.uint8(np.squeeze(self.chargrid_input[idx, :, :, 0:3] * 255)))
+
         transforms = torchvision.transforms.Compose([torchvision.transforms.ToTensor()])
-        image = transforms(image)
-        return image, segmentation_label, anchor_mask_label, anchor_coordinates_label
+
+        return transforms(image), transforms(segmentation_label), \
+               transforms(anchor_mask_label), transforms(anchor_coordinates_label)
 
 
 def get_dataset():
