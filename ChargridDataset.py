@@ -19,10 +19,10 @@ pad_left_range = 0.2
 pad_top_range = 0.2
 pad_right_range = 0.2
 pad_bot_range = 0.2
-dir_np_chargrid_1h = '/media/schartz/minion/Chargrid/data/np_chargrids_1h'
-dir_np_gt_1h = '/media/schartz/minion/Chargrid/data/np_gt_1h'
-dir_np_bbox_anchor_mask = '/media/schartz/minion/Chargrid/data/np_bbox_anchor_mask'
-dir_np_bbox_anchor_coord = '/media/schartz/minion/Chargrid/data/np_bbox_anchor_coord'
+dir_np_chargrid_1h = './data/np_chargrids_1h'
+dir_np_gt_1h = './data/np_gt_1h'
+dir_np_bbox_anchor_mask = './data/np_bbox_anchor_mask'
+dir_np_bbox_anchor_coord = './data/np_bbox_anchor_coord'
 list_filenames = [f for f in os.listdir(dir_np_chargrid_1h) if os.path.isfile(os.path.join(dir_np_chargrid_1h, f))]
 list_filenames = list_filenames[:10]
 
@@ -78,14 +78,18 @@ def extract_combined_data(dataset, batch_size, pad_left_range, pad_top_range, pa
 
     return np.array(chargrid_input), np.array(seg_gt), np.array(anchor_mask_gt), np.array(anchor_coord_gt)
 
-time_then = datetime.now()
-print(time_then)
+
+# time_then = datetime.now()
+# print(time_then)
 
 # Extract combined data here
 chargrid_input, seg_gt, anchor_mask_gt, anchor_coord = extract_combined_data(list_filenames, batch_size, pad_left_range,
                                                                              pad_top_range, pad_right_range,
                                                                              pad_bot_range)
-print((datetime.now() - time_then).total_seconds())
+
+
+# print((datetime.now() - time_then).total_seconds())
+
 class ChargridDataset(Dataset):
     def __init__(self, chargrid_input, segmentation_ground_truth, anchor_mask_ground_truth, anchor_coordinates):
         self.chargrid_input = chargrid_input
