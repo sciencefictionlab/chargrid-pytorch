@@ -15,7 +15,7 @@ nb_classes = 5
 nb_anchors = 4  # one per foreground class
 input_channels = 61
 base_channels = 64
-batch_size = 618
+batch_size = 5
 
 pad_left_range = 0.2
 pad_top_range = 0.2
@@ -26,7 +26,7 @@ dir_np_gt_1h = os.getenv('DIR_NP_GT_1H')
 dir_np_bbox_anchor_mask = os.getenv('DIR_NP_BBOX_ANCHOR_MASK')
 dir_np_bbox_anchor_coord = os.getenv('DIR_NP_BBOX_ANCHOR_COORD')
 list_filenames = [f for f in os.listdir(dir_np_chargrid_1h) if os.path.isfile(os.path.join(dir_np_chargrid_1h, f))]
-#list_filenames = list_filenames[:10]
+list_filenames = list_filenames[:10]
 
 
 def augment_data(data, tab_rand, order, shape, coord=False):
