@@ -11,7 +11,13 @@ from ChargridNetwork import ChargridNetwork
 
 def init_weights(m):
     if type(m) == nn.Conv2d:
-        torch.nn.init.uniform_(m.weight)
+        torch.nn.init.uniform_(m.weight, a=0.0, b=1.0)
+
+
+def init_weights_in_last_layers(net):
+    torch.nn.init.constant_(net.ssd_d_block[6].weight, 1e-3)
+    torch.nn.init.constant_(net.bbrd_e_block[6].weight, 1e-3)
+    torch.nn.init.constant_(net.bbrd_f_block[6].weight, 1e-3)
 
 
 if __name__ == '__main__':
@@ -27,7 +33,8 @@ if __name__ == '__main__':
     trainloader, testloader = ChargridDataset.get_dataset()
 
     net = ChargridNetwork(3, 64, 5, 4)
-    net.apply(init_weights)
+    net = net.apply(init_weights)
+    init_weights_in_last_layers(net)
 
     model_dir = os.getenv('MODEL_OUTPUT_DIR')
 
@@ -47,7 +54,7 @@ if __name__ == '__main__':
         'combined_losses': []
     }
 
-    num_epochs = 10
+    num_epochs = 5
     for epoch in range(num_epochs):
         correct = 0
         total = 0
@@ -56,15 +63,9 @@ if __name__ == '__main__':
 
             for inputs, label1, label2, label3 in trainloader:
                 inputs = inputs
-                print("label1", label1[0].shape)
-                print("after squeeze", label1[0].squeeze(1).shape)
 
                 optimizer_ft.zero_grad()
                 output1, output2, output3 = net(inputs)
-                print("output1", output1.shape)
-                print('===============================')
-                print(output3.shape, label3.shape)
-                print('===============================')
 
                 loss_1 = loss1(output1, label1.float())
                 print(loss_1)
@@ -83,7 +84,7 @@ if __name__ == '__main__':
                 final_loss.backward()
                 optimizer_ft.step()
 
-                #_, predicted = torch.max(output1.data, 1)
+                # _, predicted = torch.max(output1.data, 1)
 
             exp_lr_scheduler.step()
             #                 total += labels.size(0)
@@ -97,8 +98,8 @@ if __name__ == '__main__':
     print('================')
     print('================')
     print('================')
-    print('loss1: '+ str(losses['loss1']))
-    print('loss2: '+ str(losses['loss2']))
-    print('loss3: '+ str(losses['loss3']))
-    print('combined: '+ str(losses['combined_losses']))
+    print('loss1: ' + str(losses['loss1']))
+    print('loss2: ' + str(losses['loss2']))
+    print('loss3: ' + str(losses['loss3']))
+    print('combined: ' + str(losses['combined_losses']))
     print('Finished Training')
