@@ -1,3 +1,4 @@
+from config import autoconfigure
 import os
 import torch.nn as nn
 import torch.optim as optim
@@ -7,65 +8,89 @@ import torch
 import ChargridDataset
 from ChargridNetwork import ChargridNetwork
 
+if __name__ == '__main__':
+    # in the name of reproducibility
+    torch.manual_seed(0)
+    autoconfigure()
 
-# in the name of reproducibility
-torch.manual_seed(0)
+    HW = 3
+    C = 64
+    num_classes = 5
+    num_anchors = 4
 
+    trainloader, testloader = ChargridDataset.get_dataset()
 
-HW = 3
-C = 64
-num_classes = 5
-num_anchors = 4
+    net = ChargridNetwork(3, 64, 5, 4)
 
-trainloader, testloader = ChargridDataset.get_dataset()
+    model_dir = os.getenv('MODEL_OUTPUT_DIR')
 
-net = ChargridNetwork(3, 64, 5, 4)
+    loss1 = nn.BCELoss()
+    loss2 = nn.BCELoss()
+    loss3 = nn.SmoothL1Loss()
 
-model_dir = './output/'
+    # Observe that all parameters are being optimized
+    optimizer_ft = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-loss1 = nn.CrossEntropyLoss()
-loss2 = nn.BCELoss()
-loss3 = nn.SmoothL1Loss()
+    # Decay LR by a factor of 0.1 every 7 epochs
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+    losses = {
+        'loss1': [],
+        'loss2': [],
+        'loss3': [],
+        'combined_losses': []
+    }
 
-# Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    num_epochs = 10
+    for epoch in range(num_epochs):
+        correct = 0
+        total = 0
+        for i, data in enumerate(trainloader, 0):
 
-# Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+            for inputs, label1, label2, label3 in trainloader:
+                inputs = inputs
+                print("label1", label1[0].shape)
+                print("after squeeze", label1[0].squeeze(1).shape)
 
-num_epochs = 10
-for epoch in range(num_epochs):
-    correct = 0
-    total = 0
-    for i, data in enumerate(trainloader, 0):
-        exp_lr_scheduler.step()
+                optimizer_ft.zero_grad()
+                output1, output2, output3 = net(inputs)
+                print("output1", output1.shape)
+                print('===============================')
+                print(output3.shape, label3.shape)
+                print('===============================')
 
-        for inputs, label_1, label_2, label_3 in trainloader:
-            inputs = inputs
-            label1 = label_1
-            label2 = label_2
-            label3 = label_3
-            print("label1", label1[0].shape)
-            print("after squeeze", label1[0].squeeze(1).shape)
+                loss_1 = loss1(output1, label1.float())
+                print(loss_1)
+                losses['loss1'].append(loss_1)
 
-            optimizer_ft.zero_grad()
-            output1, output2, output3 = net(inputs)
-            print("output1", output1.shape)
+                loss_2 = loss2(output2, label2.float())
+                print(loss_2)
+                losses['loss2'].append(loss_2)
 
-            loss_1 = loss1(output1, label1)
-            loss_2 = loss2(output2, label2)
-            loss_3 = loss3(output3, label3)
-            final_loss = loss_1 + loss_2 + loss_3
-            final_loss.backward()
-            optimizer_ft.step()
+                loss_3 = loss3(output3, label3.float())
+                print(loss_3)
+                losses['loss3'].append(loss_3)
 
-            _, predicted = torch.max(output1.data, 1)
-        #                 total += labels.size(0)
-        #                 correct += (predicted == labels).sum().item()
+                final_loss = loss_1 + loss_2 + loss_3
+                losses['combined_losses'].append(final_loss)
+                final_loss.backward()
+                optimizer_ft.step()
 
-        # correct += (outputs == labels).float().sum()
-        print("Epoch {}/{}, Loss: {:.3f}".format(epoch + 1, num_epochs, final_loss.item()))
+                #_, predicted = torch.max(output1.data, 1)
 
-        torch.save(net.state_dict(), os.path.join(model_dir, 'epoch-{}.pt'.format(epoch)))
+            exp_lr_scheduler.step()
+            #                 total += labels.size(0)
+            #                 correct += (predicted == labels).sum().item()
 
-print('Finished Training')
+            # correct += (outputs == labels).float().sum()
+            print("Epoch {}/{}, Loss: {:.3f}".format(epoch + 1, num_epochs, final_loss.item()))
+
+            torch.save(net.state_dict(), os.path.join(model_dir, 'epoch-{}.pt'.format(epoch)))
+
+    print('================')
+    print('================')
+    print('================')
+    print('loss1: '+ str(losses['loss1']))
+    print('loss2: '+ str(losses['loss2']))
+    print('loss3: '+ str(losses['loss3']))
+    print('combined: '+ str(losses['combined_losses']))
+    print('Finished Training')

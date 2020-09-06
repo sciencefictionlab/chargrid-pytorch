@@ -106,7 +106,7 @@ def add_block_d_or_e(inputs, outputs):
         nn.LeakyReLU(0.2),
         nn.BatchNorm2d(outputs),
 
-        nn.Softmax(),
+        nn.Softmax(dim=1),
     )
 
 
@@ -124,7 +124,7 @@ def add_block_f(inputs, outputs):
         nn.LeakyReLU(0.2),
         nn.BatchNorm2d(outputs),
 
-        nn.Linear(in_features=inputs, out_features=outputs),
+        #nn.Linear(in_features=inputs, out_features=outputs),
     )
 
 
@@ -161,6 +161,7 @@ class ChargridNetwork(nn.Module):
         self.ssd_second_b_block = add_block_b(6 * C, 2 * C)
         self.ssd_c_block = add_block_c(3 * C, C)
         self.ssd_d_block = add_block_d_or_e(C, num_classes)
+        self.upsample = nn.Upsample(scale_factor=2)
 
         '''
         Bounding Box Regression Decoder (bbrd)
@@ -215,6 +216,7 @@ class ChargridNetwork(nn.Module):
         # print("ssd after c block " + shape_as_string(ssd_c_block_output.shape))
 
         d_block_output = self.ssd_d_block(ssd_c_block_output)
+        d_block_output = self.upsample(d_block_output)
         # print("ssd after d block " + shape_as_string(d_block_output.shape))
 
         '''
@@ -233,9 +235,11 @@ class ChargridNetwork(nn.Module):
         # print("bbrd after c block " + shape_as_string(bbrd_c_block_output.shape))
 
         bbrd_e_block_output = self.bbrd_e_block(bbrd_c_block_output)
+        bbrd_e_block_output = self.upsample(bbrd_e_block_output)
         # print("bbrd after e block " + shape_as_string(bbrd_e_block_output.shape))
 
-        bbrd_f_block_output = self.bbrd_e_block(bbrd_c_block_output)
+        bbrd_f_block_output = self.bbrd_f_block(bbrd_c_block_output)
+        bbrd_f_block_output = self.upsample(bbrd_f_block_output)
         # print("bbrd after f block " + shape_as_string(bbrd_f_block_output.shape))
 
         return d_block_output, bbrd_e_block_output, bbrd_f_block_output
