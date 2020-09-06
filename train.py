@@ -7,6 +7,11 @@ import torch
 import ChargridDataset
 from ChargridNetwork import ChargridNetwork
 
+
+# in the name of reproducibility
+torch.manual_seed(0)
+
+
 HW = 3
 C = 64
 num_classes = 5

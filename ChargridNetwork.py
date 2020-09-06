@@ -244,7 +244,7 @@ class ChargridNetwork(nn.Module):
 
 import ChargridDataset
 
-# trainloader, testloader = ChargridDataset.get_dataset()
-# net = ChargridNetwork(3, 64, 5, 4)
-# img, l1, l2, l3 = next(iter(trainloader))
-# net(img)
+trainloader, testloader = ChargridDataset.get_dataset()
+net = ChargridNetwork(3, 64, 5, 4)
+img, l1, l2, l3 = next(iter(trainloader))
+net(img)

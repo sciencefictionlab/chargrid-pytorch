@@ -1,3 +1,4 @@
+from config import autoconfigure
 import numpy as np
 import torchvision
 from skimage.transform import resize
@@ -7,6 +8,7 @@ from PIL import Image
 import torch
 from datetime import datetime
 
+autoconfigure()
 width = 128
 height = 256
 nb_classes = 5
@@ -19,10 +21,10 @@ pad_left_range = 0.2
 pad_top_range = 0.2
 pad_right_range = 0.2
 pad_bot_range = 0.2
-dir_np_chargrid_1h = './data/np_chargrids_1h'
-dir_np_gt_1h = './data/np_gt_1h'
-dir_np_bbox_anchor_mask = './data/np_bbox_anchor_mask'
-dir_np_bbox_anchor_coord = './data/np_bbox_anchor_coord'
+dir_np_chargrid_1h = os.getenv('DIR_NP_CHARGRID_1H')
+dir_np_gt_1h = os.getenv('DIR_NP_GT_1H')
+dir_np_bbox_anchor_mask = os.getenv('DIR_NP_BBOX_ANCHOR_MASK')
+dir_np_bbox_anchor_coord = os.getenv('DIR_NP_BBOX_ANCHOR_COORD')
 list_filenames = [f for f in os.listdir(dir_np_chargrid_1h) if os.path.isfile(os.path.join(dir_np_chargrid_1h, f))]
 list_filenames = list_filenames[:10]
 
