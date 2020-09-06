@@ -140,5 +140,6 @@ cython_debug/
 #intellij Pycharm
 .idea/
 
-output
-data
+output/
+data/
+excluded/
