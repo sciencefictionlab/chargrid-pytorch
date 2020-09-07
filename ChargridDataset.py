@@ -81,7 +81,7 @@ def extract_combined_data(dataset, batch_size, pad_left_range, pad_top_range, pa
     return np.array(chargrid_input), np.array(seg_gt), np.array(anchor_mask_gt), np.array(anchor_coord_gt)
 
 
-# time_then = datetime.now()
+time_then = datetime.now()
 # print(time_then)
 
 # Extract combined data here
@@ -89,8 +89,8 @@ chargrid_input, seg_gt, anchor_mask_gt, anchor_coord = extract_combined_data(lis
                                                                              pad_top_range, pad_right_range,
                                                                              pad_bot_range)
 
-
-# print((datetime.now() - time_then).total_seconds())
+print("total time taken for file parsing: ")
+print((datetime.now() - time_then).total_seconds())
 
 class ChargridDataset(Dataset):
     def __init__(self, chargrid_input, segmentation_ground_truth, anchor_mask_ground_truth, anchor_coordinates):
