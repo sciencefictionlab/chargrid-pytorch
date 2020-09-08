@@ -1,3 +1,5 @@
+from typing import Union, Dict, Any
+
 from .preprocessing import extract_tesseract_information
 from .preprocessing import get_chargrid
 from .preprocessing import extract_class_bounding_boxes
@@ -14,8 +16,14 @@ from .preprocessing_ter import extract_anchor_mask
 from .preprocessing_ter import extract_anchor_coordinates
 
 import numpy as np
+import os
+from alive_progress import alive_bar
+import multiprocessing
+from multiprocessing import Queue
+from datetime import datetime
 
-def get_one_hot_encoded_chargrid(image_file_name: str) -> dict:
+def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, Any]]:
+    print('----> ' + image_file_name + '*****')
     """
     Function to convert a given image into one hot encoded chargrid
     :param image_file_name: str
@@ -43,7 +51,8 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> dict:
         gt_np = get_img_reduced(gt_np, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
         gt_pd = reduce_pd_bbox(gt_pd, padding_left, padding_top, reduce_x, reduce_y)
     else:
-        raise ValueError('Cannot process empty image.')
+        print('Cannot process empty image --> .'.format(image_file_name))
+        return -1
 
     '''
     Resize all images to same shape (256 height and 128 width).
@@ -62,12 +71,77 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> dict:
         'anchor_mask': np_bbox_anchor_mask
     }
 
+def get_one_hot_encoded_chargrid_for_list(image_list: list, out_queue: Queue, show_progress: bool = False):
+    processed = []
+    if show_progress:
+        with alive_bar(len(image_list), spinner='notes2') as bar:
+            for file in image_list:
+                processed.append(get_one_hot_encoded_chargrid(file))
+                bar()
+    else:
+        for file in image_list:
+            processed.append(get_one_hot_encoded_chargrid(file))
+
+    processed = [x for x in processed if x != -1]
+    out_queue.put(processed)
+
+
+
+def process_dataset(dataset_dir_path: str, num_workers: int = 0, save_np_file:bool = False) -> list:
+    if num_workers == 0:
+        num_workers = os.cpu_count()//2
+
+    list_filenames = [f for f in os.listdir(dataset_dir_path) if os.path.isfile(os.path.join(dataset_dir_path, f))]
+    #list_filenames = list_filenames[:10]
+    dataset_length = len(list_filenames)
+
+    if dataset_length < 1:
+        raise ValueError('dataset directory is empty')
+
+    processes = []
+    processed_dataset = Queue()
+    step_length = dataset_length//num_workers
+    start_index = 0
+
+    for i in range(num_workers):
+        end_index = (i+1) * step_length
+
+        tmp_list = list_filenames[start_index:] if end_index > dataset_length else list_filenames[start_index:end_index]
+
+        if len(tmp_list) > 0:
+            process = multiprocessing.Process(target=get_one_hot_encoded_chargrid_for_list, args=(tmp_list, processed_dataset,))
+            processes.append(process)
+
+        start_index = start_index + step_length
+
+    time_then = datetime.now()
+    for process in processes:
+        process.start()
+        print('spawned process with pid: {} '.format(process.pid))
+
+    result = []
+    for i in range(len(processes)):
+        result.append(processed_dataset.get())
+
+    for process in processes:
+        process.join()
+        print('process: {} finished'.format(process.pid))
+        #print('processed dataset length: {}'.format(len(processed_dataset)))
+
+    print("total time taken for file parsing: {}".format((datetime.now() - time_then).total_seconds()))
+    return result
+
 
 if __name__ == '__main__':
-    single_file_converted = get_one_hot_encoded_chargrid('000.jpg')
-    print(
-        single_file_converted['chargrid'].shape,
-        single_file_converted['ground_truth'].shape,
-        single_file_converted['anchor_coords'].shape,
-        single_file_converted['anchor_mask'].shape
-    )
+    # single_file_converted = get_one_hot_encoded_chargrid('000.jpg')
+    # print(
+    #     single_file_converted['chargrid'].shape,
+    #     single_file_converted['ground_truth'].shape,
+    #     single_file_converted['anchor_coords'].shape,
+    #     single_file_converted['anchor_mask'].shape
+    # )
+
+    dataset_list = process_dataset(os.getenv('DIR_IMG'), 6)
+    print(len(dataset_list))
+    print(len(dataset_list[0]))
+    print(len(dataset_list[1]))

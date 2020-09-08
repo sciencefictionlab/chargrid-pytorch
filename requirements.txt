@@ -11,3 +11,4 @@ Pillow==7.2.0
 pandas==1.1.1
 python-dotenv==0.14.0
 pytesseract==0.3.6
+alive-progress==1.6.1
