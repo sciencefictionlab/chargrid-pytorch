@@ -152,8 +152,8 @@ def extract_anchor_coordinates(pd_bbox, img_shape):
     np_bbox_anchor_coord = np.zeros((target_height, target_width, 4 * nb_anchors))
     for index, row in pd_bbox.iterrows():
         if row["class"] > 0:
-            np_bbox_anchor_coord[row["np_top"]:row["np_bot"], row["np_left"]:row["np_right"], 4 * (row["class"] - 1)] = \
-            row["left"]
+            np_bbox_anchor_coord[row["np_top"]:row["np_bot"], row["np_left"]:row["np_right"],
+            4 * (row["class"] - 1)] = row["left"]
             np_bbox_anchor_coord[row["np_top"]:row["np_bot"], row["np_left"]:row["np_right"],
             4 * (row["class"] - 1) + 1] = row["top"]
             np_bbox_anchor_coord[row["np_top"]:row["np_bot"], row["np_left"]:row["np_right"],

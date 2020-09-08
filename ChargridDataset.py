@@ -2,7 +2,7 @@ from config import autoconfigure
 import numpy as np
 import torchvision
 from skimage.transform import resize
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, random_split
 import os
 from PIL import Image
 import torch

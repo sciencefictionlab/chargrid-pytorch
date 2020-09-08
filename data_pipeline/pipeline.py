@@ -38,7 +38,8 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> dict:
         reduce_y, padding_top, padding_bot = get_max_reduce(chargrid_np, 0)
         reduce_x, padding_left, padding_right = get_max_reduce(chargrid_np, 1)
 
-        chargrid_np = get_img_reduced(chargrid_np, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
+        chargrid_np = get_img_reduced(chargrid_np, reduce_x, reduce_y,
+                                      padding_left, padding_right, padding_top, padding_bot)
         gt_np = get_img_reduced(gt_np, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
         gt_pd = reduce_pd_bbox(gt_pd, padding_left, padding_top, reduce_x, reduce_y)
     else:
@@ -70,9 +71,3 @@ if __name__ == '__main__':
         single_file_converted['anchor_coords'].shape,
         single_file_converted['anchor_mask'].shape
     )
-
-
-
-
-
-
