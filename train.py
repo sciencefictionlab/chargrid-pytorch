@@ -35,7 +35,6 @@ if __name__ == '__main__':
     net = ChargridNetwork(3, 64, 5, 4)
     net = net.apply(init_weights)
     init_weights_in_last_layers(net)
-
     model_dir = os.getenv('MODEL_OUTPUT_DIR')
 
     loss1 = nn.BCELoss()
@@ -56,8 +55,6 @@ if __name__ == '__main__':
 
     num_epochs = 5
     for epoch in range(num_epochs):
-        correct = 0
-        total = 0
         final_loss = 0.0
         for i, data in enumerate(trainloader, 0):
 
@@ -84,18 +81,21 @@ if __name__ == '__main__':
                 final_loss.backward()
                 optimizer_ft.step()
 
-                # _, predicted = torch.max(output1.data, 1)
+                # _, predicted1 = torch.max(output1.squeeze(), dim=0)
+                # total1 += label1.size(0)
 
             exp_lr_scheduler.step()
-            #                 total += labels.size(0)
-            #                 correct += (predicted == labels).sum().item()
 
-            # correct += (outputs == labels).float().sum()
         print("Epoch {}/{}, Loss: {:.3f}".format(epoch + 1, num_epochs, final_loss.item()))
 
-        torch.save(net.state_dict(), os.path.join(model_dir, 'epoch-{}.pt'.format(epoch)))
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': net.state_dict(),
+            'optimizer_state_dict': optimizer_ft.state_dict(),
+            'loss': losses,
+        }, os.path.join(model_dir, 'epoch-{}.pt'.format(epoch)))
 
-    print('================')
+
     print('================')
     print('================')
     print('loss1: ' + str(losses['loss1']))
