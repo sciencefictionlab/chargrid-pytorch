@@ -15,7 +15,7 @@ nb_classes = 5
 nb_anchors = 4  # one per foreground class
 input_channels = 61
 base_channels = 64
-batch_size = 5
+batch_size = 618
 
 pad_left_range = 0.2
 pad_top_range = 0.2
@@ -26,12 +26,13 @@ dir_np_gt_1h = os.getenv('DIR_NP_GT_1H')
 dir_np_bbox_anchor_mask = os.getenv('DIR_NP_BBOX_ANCHOR_MASK')
 dir_np_bbox_anchor_coord = os.getenv('DIR_NP_BBOX_ANCHOR_COORD')
 list_filenames = [f for f in os.listdir(dir_np_chargrid_1h) if os.path.isfile(os.path.join(dir_np_chargrid_1h, f))]
-list_filenames = list_filenames[:10]
+# list_filenames = list_filenames[:10]
 
 
 def augment_data(data, tab_rand, order, shape, coord=False):
     data_temp = resize(np.pad(data, ((tab_rand[1], tab_rand[3]), (tab_rand[0], tab_rand[2]), (0, 0)), 'constant'),
                        shape, order=order, anti_aliasing=True)
+
     if coord:
         for i in range(0, nb_anchors):
             mask = (data_temp > 1e-6)[:, :, 4 * i]
@@ -55,7 +56,8 @@ def augment_data(data, tab_rand, order, shape, coord=False):
 
 
 def extract_combined_data(dataset, batch_size, pad_left_range, pad_top_range, pad_right_range, pad_bot_range):
-    if batch_size > len(dataset): raise ValueError('batch_size > length of dataset {}'.format(len(dataset)))
+    if batch_size > len(dataset):
+        raise ValueError('batch_size > length of dataset {}'.format(len(dataset)))
 
     np.random.shuffle(dataset)
     tab_rand = np.random.rand(batch_size, 4) * [pad_left_range * width, pad_top_range * height, pad_right_range * width,
@@ -66,17 +68,21 @@ def extract_combined_data(dataset, batch_size, pad_left_range, pad_top_range, pa
 
     for i in range(0, batch_size):
         data = np.load(os.path.join(dir_np_chargrid_1h, dataset[i]))
-        chargrid_input.append(augment_data(data, tab_rand[i], order=1, shape=(height, width, input_channels)))
+        chargrid_input.append(data)
+        # chargrid_input.append(augment_data(data, tab_rand[i], order=1, shape=(height, width, input_channels)))
 
         data = np.load(os.path.join(dir_np_gt_1h, dataset[i]))
-        seg_gt.append(augment_data(data, tab_rand[i], order=1, shape=(height, width, nb_classes)))
+        seg_gt.append(data)
+        # seg_gt.append(augment_data(data, tab_rand[i], order=1, shape=(height, width, nb_classes)))
 
         data = np.load(os.path.join(dir_np_bbox_anchor_mask, dataset[i]))
-        anchor_mask_gt.append(augment_data(data, tab_rand[i], order=1, shape=(height, width, 2 * nb_anchors)))
+        anchor_mask_gt.append(data)
+        # anchor_mask_gt.append(augment_data(data, tab_rand[i], order=1, shape=(height, width, 2 * nb_anchors)))
 
         data = np.load(os.path.join(dir_np_bbox_anchor_coord, dataset[i]))
-        anchor_coord_gt.append(
-            augment_data(data, tab_rand[i], order=0, shape=(height, width, 4 * nb_anchors), coord=True))
+        anchor_coord_gt.append(data)
+        # anchor_coord_gt.append(
+        #     augment_data(data, tab_rand[i], order=0, shape=(height, width, 4 * nb_anchors), coord=True))
 
     return np.array(chargrid_input), np.array(seg_gt), np.array(anchor_mask_gt), np.array(anchor_coord_gt)
 
@@ -126,13 +132,14 @@ def get_dataset():
 
     # print(len(trainset), len(testset))
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=5, shuffle=True, num_workers=0)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=20, shuffle=True, num_workers=0)
     testloader = torch.utils.data.DataLoader(testset, batch_size=len(testset), shuffle=True, num_workers=0)
 
     return trainloader, testloader
 
 
 if __name__ == '__main__':
+
     print('calling get_dataset')
     trainloader, testloader = get_dataset()
     img, l1, l2, l3 = next(iter(trainloader))
