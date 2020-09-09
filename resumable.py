@@ -14,10 +14,14 @@ C = 64
 num_classes = 5
 num_anchors = 4
 net = ChargridNetwork(3, 64, 5, 4)
-net = net.apply(init_weights)
-init_weights_in_last_layers(net)
 
-model = net.load_state_dict(torch.load('./output/epoch-0.pt', map_location=lambda storage, loc: storage))
+optimizer_ft = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+
+checkpoint = torch.load('./output/epoch-1.pt')
+net.load_state_dict(checkpoint['model_state_dict'])
+optimizer_ft.load_state_dict(checkpoint['optimizer_state_dict'])
+epoch = checkpoint['epoch']
+loss = checkpoint['loss']
 
 model_dir = os.getenv('MODEL_OUTPUT_DIR')
 
@@ -27,8 +31,6 @@ loss1 = nn.BCELoss()
 loss2 = nn.BCELoss()
 loss3 = nn.SmoothL1Loss()
 
-# Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
@@ -48,7 +50,7 @@ for epoch in range(num_epochs):
             inputs = inputs
 
             optimizer_ft.zero_grad()
-            output1, output2, output3 = model(inputs)
+            output1, output2, output3 = net(inputs)
 
             loss_1 = loss1(output1, label1.float())
             print(loss_1)
@@ -72,11 +74,11 @@ for epoch in range(num_epochs):
 
         exp_lr_scheduler.step()
 
-    print("Epoch {}/{}, Loss: {:.3f}".format(epoch + 2, num_epochs, final_loss.item()))
+    print("Epoch {}/{}, Loss: {:.3f}".format(epoch, num_epochs, final_loss.item()))
 
     torch.save({
-        'epoch': epoch + 2,
-        'model_state_dict': model.state_dict(),
+        'epoch': epoch,
+        'model_state_dict': net.state_dict(),
         'optimizer_state_dict': optimizer_ft.state_dict(),
         'loss': losses,
     }, os.path.join(model_dir, 'epoch-{}.pt'.format(epoch)))

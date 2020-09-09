@@ -22,6 +22,7 @@ def init_weights_in_last_layers(net):
 
 if __name__ == '__main__':
     # in the name of reproducibility
+    device = torch.device('cpu')
     torch.manual_seed(0)
     autoconfigure()
 
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     net = ChargridNetwork(3, 64, 5, 4)
     net = net.apply(init_weights)
     init_weights_in_last_layers(net)
+    net = net.to(device)
     model_dir = os.getenv('MODEL_OUTPUT_DIR')
 
     loss1 = nn.BCELoss()
@@ -42,7 +44,7 @@ if __name__ == '__main__':
     loss3 = nn.SmoothL1Loss()
 
     # Observe that all parameters are being optimized
-    optimizer_ft = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer_ft = optim.SGD(net.to(device).parameters(), lr=0.001, momentum=0.9)
 
     # Decay LR by a factor of 0.1 every 7 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
@@ -59,7 +61,10 @@ if __name__ == '__main__':
         for i, data in enumerate(trainloader, 0):
 
             for inputs, label1, label2, label3 in trainloader:
-                inputs = inputs
+                inputs = inputs.to(device)
+                label1 = label1.to(device)
+                label2 = label2.to(device)
+                label3 = label3.to(device)
 
                 optimizer_ft.zero_grad()
                 output1, output2, output3 = net(inputs)
@@ -86,7 +91,7 @@ if __name__ == '__main__':
 
             exp_lr_scheduler.step()
 
-        print("Epoch {}/{}, Loss: {:.3f}".format(epoch + 1, num_epochs, final_loss.item()))
+        print("Epoch {}/{}, Loss: {:.3f}".format(epoch, num_epochs, final_loss.item()))
 
         torch.save({
             'epoch': epoch,
