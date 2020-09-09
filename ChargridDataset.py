@@ -132,7 +132,7 @@ def get_dataset():
 
     # print(len(trainset), len(testset))
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=20, shuffle=True, num_workers=0)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=50, shuffle=True, num_workers=0)
     testloader = torch.utils.data.DataLoader(testset, batch_size=len(testset), shuffle=True, num_workers=0)
 
     return trainloader, testloader
