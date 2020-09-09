@@ -141,7 +141,7 @@ def extract_class_bounding_boxes(filename):
 
     for index, row in pd_boxes.iterrows():
         # Classes of type string
-        print(vectorized_text.toarray())
+        # print(vectorized_text.toarray())
         if cosine_similarity(vectorized_text[0].reshape(1, -1), vectorized_text[index + nb_classes].reshape(1, -1))[0][0] > cosine_similarity_threshold:
             gt_pd = add_row_gt_pd(row, 3, gt_pd)
 
