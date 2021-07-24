@@ -245,10 +245,11 @@ class ChargridNetwork(nn.Module):
         return d_block_output, bbrd_e_block_output, bbrd_f_block_output
 
 
+if __name__ == '__main__':
 
-import ChargridDataset
+    import ChargridDataset
 
-trainloader, testloader = ChargridDataset.get_dataset()
-net = ChargridNetwork(3, 64, 5, 4)
-img, l1, l2, l3 = next(iter(trainloader))
-net(img)
+    trainloader, testloader = ChargridDataset.get_dataset(train_batch_size=32)
+    net = ChargridNetwork(3, 64, 5, 4)
+    img, l1, l2, l3 = next(iter(trainloader))
+    net(img)

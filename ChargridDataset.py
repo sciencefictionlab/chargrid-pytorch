@@ -15,7 +15,7 @@ nb_classes = 5
 nb_anchors = 4  # one per foreground class
 input_channels = 61
 base_channels = 64
-batch_size = 618
+batch_size = 64#618
 
 pad_left_range = 0.2
 pad_top_range = 0.2
@@ -88,15 +88,14 @@ def extract_combined_data(dataset, batch_size, pad_left_range, pad_top_range, pa
 
 
 time_then = datetime.now()
-# print(time_then)
+print("Loading data...")
 
 # Extract combined data here
 chargrid_input, seg_gt, anchor_mask_gt, anchor_coord = extract_combined_data(list_filenames, batch_size, pad_left_range,
                                                                              pad_top_range, pad_right_range,
                                                                              pad_bot_range)
 
-print("total time taken for file parsing: ")
-print((datetime.now() - time_then).total_seconds())
+print("total time taken for file parsing: ", (datetime.now() - time_then).total_seconds(), "s")
 
 class ChargridDataset(Dataset):
     def __init__(self, chargrid_input, segmentation_ground_truth, anchor_mask_ground_truth, anchor_coordinates):
@@ -124,15 +123,15 @@ class ChargridDataset(Dataset):
                transforms(anchor_mask_label), transforms(anchor_coordinates_label)
 
 
-def get_dataset():
+def get_dataset(test_frac=0.2, train_batch_size=50):
     dataset = ChargridDataset(chargrid_input, seg_gt, anchor_mask_gt, anchor_coord)
     # print('Dataset length is {0}'.format(len(dataset)))
-    test_no = int(len(dataset) * 0.2)
+    test_no = int(len(dataset) * test_frac)
     trainset, testset = random_split(dataset, [len(dataset) - test_no, test_no])
 
     # print(len(trainset), len(testset))
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=50, shuffle=True, num_workers=0)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True, num_workers=0)
     testloader = torch.utils.data.DataLoader(testset, batch_size=len(testset), shuffle=True, num_workers=0)
 
     return trainloader, testloader

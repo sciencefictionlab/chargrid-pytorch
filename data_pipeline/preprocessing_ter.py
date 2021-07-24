@@ -217,9 +217,12 @@ if __name__ == "__main__":
         np_bbox_anchor_coord = extract_anchor_coordinates(pd_bbox, np.shape(tab_img[i]))
         print("bbox_anchor_coord", np.shape(np_bbox_anchor_coord))
 
-        plot_anchor(gt_1h, np_bbox_anchor_mask, np_bbox_anchor_coord)
+        # plot_anchor(gt_1h, np_bbox_anchor_mask, np_bbox_anchor_coord)
 
         ## Save        
+        for di in [outdir_np_chargrid_1h, outdir_np_gt_1h, outdir_np_bbox_anchor_coord, outdir_np_bbox_anchor_mask]:
+            if not os.path.exists(di):
+                os.makedirs(di)
         np.save(os.path.join(outdir_np_chargrid_1h, list_filenames[i]), img_1h)
         np.save(os.path.join(outdir_np_gt_1h, list_filenames[i]), gt_1h)
         np.save(os.path.join(outdir_np_bbox_anchor_coord, list_filenames[i]), np_bbox_anchor_coord)
