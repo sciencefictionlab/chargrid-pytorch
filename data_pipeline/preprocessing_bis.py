@@ -162,13 +162,16 @@ if __name__ == "__main__":
 
             img2 = get_img_reduced(img, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
             gt2 = get_img_reduced(gt, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
-            plot_compare(img, img2, reduce_x, reduce_y)
-            plot_compare(img, gt2, reduce_x, reduce_y)
+            # plot_compare(img, img2, reduce_x, reduce_y)
+            # plot_compare(img, gt2, reduce_x, reduce_y)
 
             pd_bbox = reduce_pd_bbox(pd_bbox, padding_left, padding_top, reduce_x, reduce_y)
             # print(pd_bbox)
 
             ## Save        
+            for di in [outdir_np_chargrid_reduced, outdir_np_gt_reduced, outdir_pd_bbox_reduced, outdir_png_chargrid_reduced, outdir_png_gt_reduced]:
+                if not os.path.exists(di):
+                    os.makedirs(di)
             np.save(os.path.join(outdir_np_chargrid_reduced, filename), img2)
             np.save(os.path.join(outdir_np_gt_reduced, filename), gt2)
             pd_bbox.to_pickle(os.path.join(outdir_pd_bbox_reduced, filename).replace("npy", "pkl"))

@@ -46,8 +46,11 @@ te.pytesseract.tesseract_cmd = os.getenv('TESSERACT_EXECUTABLE')
 
 ## Hyperparameters
 dir_img = os.getenv('DIR_IMG')
+# dir_img = "./data/img_inputs"
 dir_boxes = os.getenv('DIR_BOXES')
+# dir_boxes = "./data/gt_boxes"
 dir_classes = os.getenv('DIR_CLASSES')
+# dir_classes = "./data/gt_classes"
 outdir_np_chargrid = "./data/np_chargrids/"
 outdir_png_chargrid = "./data/img_chargrids/"
 outdir_np_gt = "./data/np_gt/"
@@ -182,7 +185,8 @@ def get_reduced_output(chargrid_pd, gt_pd, img_shape):
     chargrid_pd.reset_index(drop=True, inplace=True)
 
     for index, row in chargrid_pd.iterrows():
-        chargrid_np[row['top']:row['top'] + row['height'], row['left']:row['left'] + row['width']] = row['ord']
+        # print(row['top'],row['top'] + row['height'], row['left'],row['left'] + row['width'])
+        chargrid_np[int(row['top']):int(row['top'] + row['height']), int(row['left']):int(row['left'] + row['width'])] = row['ord']
 
     gt_np = np.array([0] * img_shape[0] * img_shape[1]).reshape((img_shape[0], img_shape[1]))
 
@@ -215,7 +219,8 @@ if __name__ == "__main__":
 
     print("Number of input files : ", len(list_filenames))
 
-    for filename in list_filenames:
+    for filenum, filename in enumerate(list_filenames):
+        print(filenum, "/", len(list_filenames))
         document_text_dataframe, img_shape = extract_tesseract_information(filename)
 
         chargrid_pd = get_chargrid(document_text_dataframe)
@@ -224,10 +229,14 @@ if __name__ == "__main__":
 
         chargrid_np, gt_np, gt_pd = get_reduced_output(chargrid_pd, gt_pd, img_shape)
 
-        plot_input_vs_output(chargrid_np, gt_np)
+        # plot_input_vs_output(chargrid_np, gt_np)
         # print(gt_pd)
 
         ##Saving
+        for di in [outdir_np_chargrid, outdir_np_gt, outdir_pd_bbox, outdir_png_chargrid, outdir_png_gt]:
+            if not os.path.exists(di):
+                os.makedirs(di)
+
         np.save(os.path.join(outdir_np_chargrid, filename).replace("jpg", "npy"), chargrid_np)
         np.save(os.path.join(outdir_np_gt, filename).replace("jpg", "npy"), gt_np)
         gt_pd.to_pickle(os.path.join(outdir_pd_bbox, filename).replace("jpg", "pkl"))
