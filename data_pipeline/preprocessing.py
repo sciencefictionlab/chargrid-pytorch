@@ -112,7 +112,7 @@ def get_chargrid(dt, img_shape):
 
         # so place the value '65' at particualr position in chargrid_np calculated by using top, left, width, height
 
-        chargrid_np[row['top']:row['top'] + row['height'], row['left']:row['left'] + row['width']] = row['ord']
+        chargrid_np[int(row['top']):int(row['top']) + int(row['height']), int(row['left']):int(row['left']) + int(row['width'])] = int(row['ord'])
 
         # if top-3, height - 5, left-1, width-10
         # then chargrid_np[3: 8, 1:11]= 65
@@ -121,7 +121,7 @@ def get_chargrid(dt, img_shape):
     return chargrid_np
 
 
-def get_groundTruth():
+def get_groundTruth(filename):
     gt_pd = pd.DataFrame(columns=['left', 'top', 'right', 'bot', 'class'])
 
     ## Import ground truth files
@@ -350,7 +350,7 @@ if __name__ == "__main__":
 
         chargrid_np = get_chargrid(df, img_shape)
 
-        gt_pd = get_groundTruth()
+        gt_pd = get_groundTruth(filename)
 
         gt_pd, gt_np, chargrid_np = get_final_groundtruth(gt_pd, chargrid_np, img_shape)
 

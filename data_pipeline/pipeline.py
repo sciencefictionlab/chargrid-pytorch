@@ -40,7 +40,7 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, A
 
     document_text_dataframe, img_shape = extract_tesseract_information(image_file_name)
     chargrid_np = get_chargrid(document_text_dataframe, img_shape)
-    gt_pd = get_groundTruth()
+    gt_pd = get_groundTruth(image_file_name)
     gt_pd, gt_np, chargrid_np = get_final_groundtruth(gt_pd, chargrid_np, img_shape)
 
 
