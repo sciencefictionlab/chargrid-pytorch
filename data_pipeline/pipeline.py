@@ -1,6 +1,6 @@
 from typing import Union, Dict, Any
 
-from .preprocessing import extract_tesseract_information
+from .preprocessing import extract_tesseract_information, get_groundTruth, get_final_groundtruth
 from .preprocessing import get_chargrid
 from .preprocessing import extract_class_bounding_boxes
 from .preprocessing import get_reduced_output
@@ -33,10 +33,16 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, A
     '''
     Get image chargrid, ground truth of class texts in the image and bounding boxes info.
     '''
+    # document_text_dataframe, img_shape = extract_tesseract_information(image_file_name)
+    # chargrid_pd = get_chargrid(document_text_dataframe)
+    # gt_pd = extract_class_bounding_boxes(image_file_name)
+    # chargrid_np, gt_np, gt_pd = get_reduced_output(chargrid_pd, gt_pd, img_shape)
+
     document_text_dataframe, img_shape = extract_tesseract_information(image_file_name)
-    chargrid_pd = get_chargrid(document_text_dataframe)
-    gt_pd = extract_class_bounding_boxes(image_file_name)
-    chargrid_np, gt_np, gt_pd = get_reduced_output(chargrid_pd, gt_pd, img_shape)
+    chargrid_np = get_chargrid(document_text_dataframe, img_shape)
+    gt_pd = get_groundTruth()
+    gt_pd, gt_np, chargrid_np = get_final_groundtruth(gt_pd, chargrid_np, img_shape)
+
 
     '''
     Reduce image size as much as possible without losing too much information from image chargrids.
