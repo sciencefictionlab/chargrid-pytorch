@@ -31,14 +31,16 @@ import pandas as pd
 import os
 
 ## Hyperparameters
-dir_np_chargrid = "./data/np_chargrids/"
-dir_np_gt = "./data/np_gt/"
-dir_pd_bbox = "./data/pd_bbox/"
-outdir_np_chargrid_reduced = "./data/np_chargrids_reduced/"
-outdir_png_chargrid_reduced = "./data/img_chargrids_reduced/"
-outdir_np_gt_reduced = "./data/np_gt_reduced/"
-outdir_png_gt_reduced = "./data/img_gt_reduced/"
-outdir_pd_bbox_reduced = "./data/pd_bbox_reduced/"
+dir_np_chargrid = os.getenv('DIR_NP_CHARGRID')
+dir_np_gt = os.getenv('DIR_NP_GT')
+dir_pd_bbox =os.getenv('DIR_PD_BBOX')
+
+outdir_np_chargrid_reduced = os.getenv('DIR_NP_CHARGRID_REDUCED')
+outdir_png_chargrid_reduced = os.getenv('DIR_PNG_CHARGRID_REDUCED')
+outdir_np_gt_reduced = os.getenv('DIR_NP_GT_REDUCED')
+outdir_png_gt_reduced = os.getenv('DIR_PNG_GT_REDUCED')
+outdir_pd_bbox_reduced = os.getenv('DIR_PD_BBOX_REDUCED')
+
 equal_threshold = 0.95
 max_padding = 3
 

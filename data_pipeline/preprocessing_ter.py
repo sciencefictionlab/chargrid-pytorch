@@ -37,13 +37,15 @@ import os
 from skimage.transform import resize
 
 ## Hyperparameters
-dir_np_chargrid_reduced = "./data/np_chargrids_reduced/"
-dir_np_gt_reduced = "./data/np_gt_reduced/"
-dir_pd_bbox_reduced = "./data/pd_bbox_reduced/"
-outdir_np_chargrid_1h = "./data/np_chargrids_1h/"
-outdir_np_gt_1h = "./data/np_gt_1h/"
-outdir_np_bbox_anchor_mask = "./data/np_bbox_anchor_mask/"
-outdir_np_bbox_anchor_coord = "./data/np_bbox_anchor_coord/"
+dir_np_chargrid_reduced = os.getenv('DIR_NP_CHARGRID_REDUCED')
+dir_np_gt_reduced = os.getenv('DIR_NP_GT_REDUCED')
+dir_pd_bbox_reduced = os.getenv('DIR_PD_BBOX_REDUCED')
+
+outdir_np_chargrid_1h = os.getenv('DIR_NP_CHARGRID_1H')
+outdir_np_gt_1h = OS.getenv('DIR_NP_GT_1H')
+outdir_np_bbox_anchor_mask = os.getenv('DIR_NP_BBOX_ANCHOR_MASK')
+outdir_np_bbox_anchor_coord = os.getenv('DIR_NP_BBOX_ANCHOR_COORD')
+
 target_height = 256
 target_width = 128
 target_digit = 61

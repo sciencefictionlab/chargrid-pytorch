@@ -48,11 +48,13 @@ te.pytesseract.tesseract_cmd = os.getenv('TESSERACT_EXECUTABLE')
 dir_img = os.getenv('DIR_IMG')
 dir_boxes = os.getenv('DIR_BOXES')
 dir_classes = os.getenv('DIR_CLASSES')
-outdir_np_chargrid = "./data/np_chargrids/"
-outdir_png_chargrid = "./data/img_chargrids/"
-outdir_np_gt = "./data/np_gt/"
-outdir_png_gt = "./data/img_gt/"
-outdir_pd_bbox = "./data/pd_bbox/"
+
+outdir_np_chargrid = os.getenv('DIR_NP_CHARGRID')
+outdir_png_chargrid = os.getenv('DIR_PNG_CHARGRID')
+outdir_np_gt = os.getenv('DIR_NP_GT')
+outdir_png_gt = os.getenv('DIR_PNG_GT')
+outdir_pd_bbox = os.getenv('DIR_PD_BBOX')
+
 tesseract_conf_threshold = 10
 cosine_similarity_threshold = 0.4
 list_classes = ["total", "company", "address", "date"]
