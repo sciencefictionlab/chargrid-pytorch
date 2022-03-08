@@ -31,8 +31,10 @@ Several files are generated :
 """
 # suppress Pandas future warnings
 import warnings
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
+warnings.simplefilter(action='ignore', category=DeprecationWarning)
 
 import numpy as np
 import pandas as pd
@@ -44,7 +46,9 @@ import json
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from config import autoconfigure
+
 from loguru import logger
+from alive_progress import alive_bar
 
 autoconfigure()
 te.pytesseract.tesseract_cmd = os.getenv('TESSERACT_EXECUTABLE')
@@ -77,7 +81,7 @@ def add_row_gt_pd(row, c, gt_pd):
 
 
 def extract_tesseract_information(filename):
-    logger.info('input ->' + os.path.join(dir_img, filename))
+    # logger.info('input ->' + os.path.join(dir_img, filename))
     img = plt.imread(os.path.join(dir_img, filename), format='jpeg')
     # print(filename, img.shape)
 
@@ -120,7 +124,8 @@ def get_chargrid(dt, img_shape):
 
         # so place the value '65' at particualr position in chargrid_np calculated by using top, left, width, height
 
-        chargrid_np[int(row['top']):int(row['top']) + int(row['height']), int(row['left']):int(row['left']) + int(row['width'])] = int(row['ord'])
+        chargrid_np[int(row['top']):int(row['top']) + int(row['height']),
+        int(row['left']):int(row['left']) + int(row['width'])] = int(row['ord'])
 
         # if top-3, height - 5, left-1, width-10
         # then chargrid_np[3: 8, 1:11]= 65
@@ -185,10 +190,12 @@ def get_groundTruth(filename):
         # if float---must be total
         # if date type-- must be date
 
-        if cosine_similarity(vectorized_text[0].reshape(1, -1), vectorized_text[index + nb_classes].reshape(1, -1))[0][0] > cosine_similarity_threshold:
+        if cosine_similarity(vectorized_text[0].reshape(1, -1), vectorized_text[index + nb_classes].reshape(1, -1))[0][
+            0] > cosine_similarity_threshold:
             gt_pd = add_row_gt_pd(row, 3, gt_pd)
 
-        if cosine_similarity(vectorized_text[2].reshape(1, -1), vectorized_text[index + nb_classes].reshape(1, -1))[0][0] > cosine_similarity_threshold:
+        if cosine_similarity(vectorized_text[2].reshape(1, -1), vectorized_text[index + nb_classes].reshape(1, -1))[0][
+            0] > cosine_similarity_threshold:
             gt_pd = add_row_gt_pd(row, 2, gt_pd)
 
         # Classes of type date
@@ -351,31 +358,32 @@ def get_reduced_output(chargrid_pd, gt_pd, img_shape):
 if __name__ == "__main__":
     list_filenames = [f for f in os.listdir(dir_img) if os.path.isfile(os.path.join(dir_img, f))]
 
-    print("Number of input files : ", len(list_filenames))
+    logger.info("Number of input files : " + str(len(list_filenames)))
 
-    for filename in list_filenames:
-        df, img_shape = extract_tesseract_information(filename)
+    with alive_bar(len(list_filenames), ctrl_c=False, title=f'processing files: ', bar='classic') as bar:
+        for filename in list_filenames:
+            df, img_shape = extract_tesseract_information(filename)
 
-        chargrid_np = get_chargrid(df, img_shape)
+            chargrid_np = get_chargrid(df, img_shape)
 
-        gt_pd = get_groundTruth(filename)
+            gt_pd = get_groundTruth(filename)
 
-        gt_pd, gt_np, chargrid_np = get_final_groundtruth(gt_pd, chargrid_np, img_shape)
+            gt_pd, gt_np, chargrid_np = get_final_groundtruth(gt_pd, chargrid_np, img_shape)
 
-        plot_input_vs_output(chargrid_np, gt_np)
-        # print(gt_pd)
+            plot_input_vs_output(chargrid_np, gt_np)
+            # print(gt_pd)
 
-        ##Saving
-        np.save(os.path.join(outdir_np_chargrid, filename).replace("jpg", "npy"), chargrid_np)
-        np.save(os.path.join(outdir_np_gt, filename).replace("jpg", "npy"), gt_np)
-        gt_pd.to_pickle(os.path.join(outdir_pd_bbox, filename).replace("jpg", "pkl"))
+            ##Saving
+            np.save(os.path.join(outdir_np_chargrid, filename).replace("jpg", "npy"), chargrid_np)
+            np.save(os.path.join(outdir_np_gt, filename).replace("jpg", "npy"), gt_np)
+            gt_pd.to_pickle(os.path.join(outdir_pd_bbox, filename).replace("jpg", "pkl"))
 
-        plt.imshow(chargrid_np)
-        plt.savefig(os.path.join(outdir_png_chargrid, filename).replace("jpg", "png"))
-        plt.close()
+            plt.imshow(chargrid_np)
+            plt.savefig(os.path.join(outdir_png_chargrid, filename).replace("jpg", "png"))
+            plt.close()
 
-        plt.imshow(gt_np)
-        plt.savefig(os.path.join(outdir_png_gt, filename).replace("jpg", "png"))
-        plt.close()
-        logger.info("output -> " + os.path.join(outdir_png_gt, filename))
-        print()
+            plt.imshow(gt_np)
+            plt.savefig(os.path.join(outdir_png_gt, filename).replace("jpg", "png"))
+            plt.close()
+            bar()
+    logger.info('processing complete')

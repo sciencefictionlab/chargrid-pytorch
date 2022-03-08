@@ -30,6 +30,11 @@ Several files are generated :
 - in outdir_np_bbox_anchor_coord = "./data/np_bbox_anchor_coord/" : the Bounding Box anchor coordinates in npy
 """
 import warnings
+
+from alive_progress import alive_bar
+
+from config import autoconfigure
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
@@ -38,6 +43,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from skimage.transform import resize
+autoconfigure()
 
 ## Hyperparameters
 dir_np_chargrid_reduced = os.getenv('DIR_NP_CHARGRID_REDUCED')
@@ -59,16 +65,16 @@ nb_digit_threshold = 10000
 
 def print_stats_img(tab_img):
     tab_width = [np.shape(tab_img[i])[0] for i in range(0, len(tab_img))]
-    print("min width=", np.min(tab_width))
-    print("max width=", np.max(tab_width), list_filenames[np.argmax(tab_width)])
-    print("ave width=", np.average(tab_width))
-    print("std width=", np.std(tab_width))
+    # print("min width=", np.min(tab_width))
+    # print("max width=", np.max(tab_width), list_filenames[np.argmax(tab_width)])
+    # print("ave width=", np.average(tab_width))
+    # print("std width=", np.std(tab_width))
 
     tab_height = [np.shape(tab_img[i])[1] for i in range(0, len(tab_img))]
-    print("min height=", np.min(tab_height))
-    print("max height=", np.max(tab_height), list_filenames[np.argmax(tab_height)])
-    print("ave height=", np.average(tab_height))
-    print("std height=", np.std(tab_height))
+    # print("min height=", np.min(tab_height))
+    # print("max height=", np.max(tab_height), list_filenames[np.argmax(tab_height)])
+    # print("ave height=", np.average(tab_height))
+    # print("std height=", np.std(tab_height))
 
 
 def print_stats_seg(tab_gt):
@@ -80,8 +86,8 @@ def print_stats_seg(tab_gt):
         for i in range(0, len(uniqu)):
             prop_class[uniqu[i]] += count[i]
 
-    print("prop_nb_class=", prop_nb_class, prop_nb_class / np.sum(prop_nb_class))
-    print("prop_class=", prop_class, prop_class / np.sum(prop_class))
+    # print("prop_nb_class=", prop_nb_class, prop_nb_class / np.sum(prop_nb_class))
+    # print("prop_class=", prop_class, prop_class / np.sum(prop_class))
 
 
 def discard_digits_with_low_occurence(tab_img):
@@ -193,39 +199,40 @@ if __name__ == "__main__":
         tab_img.append(np.load(os.path.join(dir_np_chargrid_reduced, list_filenames[i])))
         tab_gt.append(np.load(os.path.join(dir_np_gt_reduced, list_filenames[i])))
 
-    print("tab_img shape=", np.shape(tab_img))
-    print("tab_gt shape=", np.shape(tab_gt))
+    # print("tab_img shape=", np.shape(tab_img))
+    # print("tab_gt shape=", np.shape(tab_gt))
 
     # print_stats_img(tab_img)
     # print_stats_seg(tab_gt)
 
     tab_img = discard_digits_with_low_occurence(tab_img)
+    with alive_bar(len(list_filenames), ctrl_c=False, title=f'processing files: ', bar='classic') as bar:
+        for i in range(0, len(list_filenames)):
+            img_1h, gt_1h = convert_to_1h(tab_img[i], tab_gt[i])
+            # # print(np.shape(img_1h))
+            # # print(np.shape(gt_1h))
 
-    for i in range(0, len(list_filenames)):
-        img_1h, gt_1h = convert_to_1h(tab_img[i], tab_gt[i])
-        # print(np.shape(img_1h))
-        # print(np.shape(gt_1h))
+            img_1h, gt_1h = resize_to_target(img_1h, gt_1h)
+            # print("image_1h_shape", np.shape(img_1h))
+            # print("gt_1h_shape", np.shape(gt_1h))
 
-        img_1h, gt_1h = resize_to_target(img_1h, gt_1h)
-        print("image_1h_shape", np.shape(img_1h))
-        print("gt_1h_shape", np.shape(gt_1h))
+            # plot_compare_input_1h(tab_img[i], img_1h)
+            # plot_compare_input_1h(tab_gt[i], gt_1h)
 
-        # plot_compare_input_1h(tab_img[i], img_1h)
-        # plot_compare_input_1h(tab_gt[i], gt_1h)
+            ## Load input
+            pd_bbox = pd.read_pickle(os.path.join(dir_pd_bbox_reduced, list_filenames[i]).replace("npy", "pkl"))
 
-        ## Load input
-        pd_bbox = pd.read_pickle(os.path.join(dir_pd_bbox_reduced, list_filenames[i]).replace("npy", "pkl"))
+            np_bbox_anchor_mask = extract_anchor_mask(pd_bbox, np.shape(tab_img[i]))
+            # print("bbox_anchor_mask", np.shape(np_bbox_anchor_mask))
 
-        np_bbox_anchor_mask = extract_anchor_mask(pd_bbox, np.shape(tab_img[i]))
-        print("bbox_anchor_mask", np.shape(np_bbox_anchor_mask))
+            np_bbox_anchor_coord = extract_anchor_coordinates(pd_bbox, np.shape(tab_img[i]))
+            # print("bbox_anchor_coord", np.shape(np_bbox_anchor_coord))
 
-        np_bbox_anchor_coord = extract_anchor_coordinates(pd_bbox, np.shape(tab_img[i]))
-        print("bbox_anchor_coord", np.shape(np_bbox_anchor_coord))
+            plot_anchor(gt_1h, np_bbox_anchor_mask, np_bbox_anchor_coord)
 
-        plot_anchor(gt_1h, np_bbox_anchor_mask, np_bbox_anchor_coord)
-
-        ## Save        
-        np.save(os.path.join(outdir_np_chargrid_1h, list_filenames[i]), img_1h)
-        np.save(os.path.join(outdir_np_gt_1h, list_filenames[i]), gt_1h)
-        np.save(os.path.join(outdir_np_bbox_anchor_coord, list_filenames[i]), np_bbox_anchor_coord)
-        np.save(os.path.join(outdir_np_bbox_anchor_mask, list_filenames[i]), np_bbox_anchor_mask)
+            ## Save
+            np.save(os.path.join(outdir_np_chargrid_1h, list_filenames[i]), img_1h)
+            np.save(os.path.join(outdir_np_gt_1h, list_filenames[i]), gt_1h)
+            np.save(os.path.join(outdir_np_bbox_anchor_coord, list_filenames[i]), np_bbox_anchor_coord)
+            np.save(os.path.join(outdir_np_bbox_anchor_mask, list_filenames[i]), np_bbox_anchor_mask)
+            bar()

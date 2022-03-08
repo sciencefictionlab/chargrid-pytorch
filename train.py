@@ -22,7 +22,7 @@ def init_weights_in_last_layers(net):
 
 if __name__ == '__main__':
     # in the name of reproducibility
-    device = torch.device('cpu')
+    device = torch.device('cuda')
     torch.manual_seed(0)
     autoconfigure()
 

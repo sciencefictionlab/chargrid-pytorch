@@ -26,6 +26,12 @@ Several files are generated :
 """
 # suppress Pandas future warnings
 import warnings
+
+from alive_progress import alive_bar
+from loguru import logger
+
+from config import autoconfigure
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
@@ -34,6 +40,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
+autoconfigure()
 ## Hyperparameters
 dir_np_chargrid = os.getenv('DIR_NP_CHARGRID')
 dir_np_gt = os.getenv('DIR_NP_GT')
@@ -151,38 +158,42 @@ def plot_compare(input, output, reduce_x, reduce_y):
 
 
 if __name__ == "__main__":
+    print(dir_np_chargrid)
     list_filenames = [f for f in os.listdir(dir_np_chargrid) if os.path.isfile(os.path.join(dir_np_chargrid, f))]
+    logger.info("Preparing to reduce " + str(len(list_filenames)) + " images.")
+    with alive_bar(len(list_filenames), ctrl_c=False, title=f'processing files: ', bar='classic') as bar:
+        for filename in list_filenames:
+            ## Load inputs
+            img = np.load(os.path.join(dir_np_chargrid, filename))
+            gt = np.load(os.path.join(dir_np_gt, filename))
+            pd_bbox = pd.read_pickle(os.path.join(dir_pd_bbox, filename).replace("npy", "pkl"))
 
-    for filename in list_filenames:
-        ## Load inputs
-        img = np.load(os.path.join(dir_np_chargrid, filename))
-        gt = np.load(os.path.join(dir_np_gt, filename))
-        pd_bbox = pd.read_pickle(os.path.join(dir_pd_bbox, filename).replace("npy", "pkl"))
+            if np.shape(img) != (0, 0):
+                reduce_y, padding_top, padding_bot = get_max_reduce(img, 0)
+                print("final reduce_y = ", reduce_y, "padding_t = ", padding_top, "padding_b = ", padding_bot, filename)
 
-        if np.shape(img) != (0, 0):
-            reduce_y, padding_top, padding_bot = get_max_reduce(img, 0)
-            print("final reduce_y = ", reduce_y, "padding_t = ", padding_top, "padding_b = ", padding_bot, filename)
+                reduce_x, padding_left, padding_right = get_max_reduce(img, 1)
+                print("final reduce_x = ", reduce_x, "padding_l = ", padding_left, "padding_r = ", padding_right, filename)
 
-            reduce_x, padding_left, padding_right = get_max_reduce(img, 1)
-            print("final reduce_x = ", reduce_x, "padding_l = ", padding_left, "padding_r = ", padding_right, filename)
+                img2 = get_img_reduced(img, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
+                gt2 = get_img_reduced(gt, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
+                plot_compare(img, img2, reduce_x, reduce_y)
+                plot_compare(img, gt2, reduce_x, reduce_y)
 
-            img2 = get_img_reduced(img, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
-            gt2 = get_img_reduced(gt, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
-            plot_compare(img, img2, reduce_x, reduce_y)
-            plot_compare(img, gt2, reduce_x, reduce_y)
+                pd_bbox = reduce_pd_bbox(pd_bbox, padding_left, padding_top, reduce_x, reduce_y)
+                # print(pd_bbox)
 
-            pd_bbox = reduce_pd_bbox(pd_bbox, padding_left, padding_top, reduce_x, reduce_y)
-            # print(pd_bbox)
+                ## Save
+                np.save(os.path.join(outdir_np_chargrid_reduced, filename), img2)
+                np.save(os.path.join(outdir_np_gt_reduced, filename), gt2)
+                pd_bbox.to_pickle(os.path.join(outdir_pd_bbox_reduced, filename).replace("npy", "pkl"))
 
-            ## Save        
-            np.save(os.path.join(outdir_np_chargrid_reduced, filename), img2)
-            np.save(os.path.join(outdir_np_gt_reduced, filename), gt2)
-            pd_bbox.to_pickle(os.path.join(outdir_pd_bbox_reduced, filename).replace("npy", "pkl"))
+                plt.imshow(img2)
+                plt.savefig(os.path.join(outdir_png_chargrid_reduced, filename).replace("npy", "png"))
+                plt.close()
 
-            plt.imshow(img2)
-            plt.savefig(os.path.join(outdir_png_chargrid_reduced, filename).replace("npy", "png"))
-            plt.close()
+                plt.imshow(gt2)
+                plt.savefig(os.path.join(outdir_png_gt_reduced, filename).replace("npy", "png"))
+                plt.close()
 
-            plt.imshow(gt2)
-            plt.savefig(os.path.join(outdir_png_gt_reduced, filename).replace("npy", "png"))
-            plt.close()
+            bar()
