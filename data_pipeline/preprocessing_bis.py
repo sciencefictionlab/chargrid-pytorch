@@ -24,6 +24,10 @@ Several files are generated :
 - in outdir_png_gt_reduced = "./data/img_gt_reduced/" : the reduced Class Segmentation in png
 - in outdir_pd_bbox_reduced = "./data/pd_bbox_reduced/" : Class Bounding Boxes with the new coordinates in pkl
 """
+# suppress Pandas future warnings
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
 
 import numpy as np
 import matplotlib.pyplot as plt

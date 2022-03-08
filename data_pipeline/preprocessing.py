@@ -29,6 +29,10 @@ Several files are generated :
 - in outdir_png_gt = "./data/img_gt/" : Class Segmentation of each input image in png
 - in outdir_pd_bbox = "./data/pd_bbox/" : Class Bounding Boxes of each input image in pkl (pandas dataframe format)
 """
+# suppress Pandas future warnings
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
 
 import numpy as np
 import pandas as pd
@@ -40,6 +44,7 @@ import json
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from config import autoconfigure
+from loguru import logger
 
 autoconfigure()
 te.pytesseract.tesseract_cmd = os.getenv('TESSERACT_EXECUTABLE')
@@ -72,6 +77,7 @@ def add_row_gt_pd(row, c, gt_pd):
 
 
 def extract_tesseract_information(filename):
+    logger.info('input ->' + os.path.join(dir_img, filename))
     img = plt.imread(os.path.join(dir_img, filename), format='jpeg')
     # print(filename, img.shape)
 
@@ -371,3 +377,5 @@ if __name__ == "__main__":
         plt.imshow(gt_np)
         plt.savefig(os.path.join(outdir_png_gt, filename).replace("jpg", "png"))
         plt.close()
+        logger.info("output -> " + os.path.join(outdir_png_gt, filename))
+        print()

@@ -29,6 +29,9 @@ Several files are generated :
 - in outdir_np_bbox_anchor_mask = "./data/np_bbox_anchor_mask/" : the Bounding Box anchor masks in npy
 - in outdir_np_bbox_anchor_coord = "./data/np_bbox_anchor_coord/" : the Bounding Box anchor coordinates in npy
 """
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -42,7 +45,7 @@ dir_np_gt_reduced = os.getenv('DIR_NP_GT_REDUCED')
 dir_pd_bbox_reduced = os.getenv('DIR_PD_BBOX_REDUCED')
 
 outdir_np_chargrid_1h = os.getenv('DIR_NP_CHARGRID_1H')
-outdir_np_gt_1h = OS.getenv('DIR_NP_GT_1H')
+outdir_np_gt_1h = os.getenv('DIR_NP_GT_1H')
 outdir_np_bbox_anchor_mask = os.getenv('DIR_NP_BBOX_ANCHOR_MASK')
 outdir_np_bbox_anchor_coord = os.getenv('DIR_NP_BBOX_ANCHOR_COORD')
 
