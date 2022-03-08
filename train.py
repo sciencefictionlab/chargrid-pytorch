@@ -34,6 +34,10 @@ if __name__ == '__main__':
     trainloader, testloader = ChargridDataset.get_dataset()
 
     net = ChargridNetwork(3, 64, 5, 4)
+    if torch.cuda.device_count() > 1:
+        print("Found " + str(torch.cuda.device_count()) + " gpus")
+        print("Applying data parallel processing")
+        net = nn.DataParallel(net)
     net = net.apply(init_weights)
     init_weights_in_last_layers(net)
     net = net.to(device)
@@ -70,15 +74,15 @@ if __name__ == '__main__':
                 output1, output2, output3 = net(inputs)
 
                 loss_1 = loss1(output1, label1.float())
-                print(loss_1)
+                # print(loss_1)
                 losses['loss1'].append(loss_1)
 
                 loss_2 = loss2(output2, label2.float())
-                print(loss_2)
+                # print(loss_2)
                 losses['loss2'].append(loss_2)
 
                 loss_3 = loss3(output3, label3.float())
-                print(loss_3)
+                # print(loss_3)
                 losses['loss3'].append(loss_3)
 
                 final_loss = loss_1 + loss_2 + loss_3
