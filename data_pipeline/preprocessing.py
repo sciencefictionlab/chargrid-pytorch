@@ -46,8 +46,6 @@ import json
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from config import autoconfigure
-
-from loguru import logger
 from alive_progress import alive_bar
 
 autoconfigure()
@@ -386,4 +384,4 @@ if __name__ == "__main__":
             plt.savefig(os.path.join(outdir_png_gt, filename).replace("jpg", "png"))
             plt.close()
             bar()
-    logger.info('processing complete')
+    print('processing complete')

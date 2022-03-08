@@ -28,7 +28,6 @@ Several files are generated :
 import warnings
 
 from alive_progress import alive_bar
-from loguru import logger
 
 from config import autoconfigure
 

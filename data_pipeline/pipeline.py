@@ -14,6 +14,7 @@ from .preprocessing_ter import convert_to_1h
 from .preprocessing_ter import resize_to_target
 from .preprocessing_ter import extract_anchor_mask
 from .preprocessing_ter import extract_anchor_coordinates
+from .setup import check_dataset_dir_present
 
 import numpy as np
 import os
@@ -21,6 +22,32 @@ from alive_progress import alive_bar
 import multiprocessing
 from multiprocessing import Queue
 from datetime import datetime
+
+
+
+dir_img = os.getenv('DIR_IMG')
+dir_boxes = os.getenv('DIR_BOXES')
+dir_classes = os.getenv('DIR_CLASSES')
+
+outdir_np_chargrid = os.getenv('DIR_NP_CHARGRID')
+outdir_png_chargrid = os.getenv('DIR_PNG_CHARGRID')
+outdir_np_gt = os.getenv('DIR_NP_GT')
+outdir_png_gt = os.getenv('DIR_PNG_GT')
+outdir_pd_bbox = os.getenv('DIR_PD_BBOX')
+
+outdir_np_chargrid_reduced = os.getenv('DIR_NP_CHARGRID_REDUCED')
+outdir_png_chargrid_reduced = os.getenv('DIR_PNG_CHARGRID_REDUCED')
+outdir_np_gt_reduced = os.getenv('DIR_NP_GT_REDUCED')
+outdir_png_gt_reduced = os.getenv('DIR_PNG_GT_REDUCED')
+outdir_pd_bbox_reduced = os.getenv('DIR_PD_BBOX_REDUCED')
+
+
+outdir_np_chargrid_1h = os.getenv('DIR_NP_CHARGRID_1H')
+outdir_np_gt_1h = os.getenv('DIR_NP_GT_1H')
+outdir_np_bbox_anchor_mask = os.getenv('DIR_NP_BBOX_ANCHOR_MASK')
+outdir_np_bbox_anchor_coord = os.getenv('DIR_NP_BBOX_ANCHOR_COORD')
+
+
 
 def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, Any]]:
     print('----> ' + image_file_name + '*****')
@@ -44,6 +71,13 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, A
     gt_pd, gt_np, chargrid_np = get_final_groundtruth(gt_pd, chargrid_np, img_shape)
 
 
+    #save first output
+    np.save(os.path.join(outdir_np_chargrid, image_file_name).replace("jpg", "npy"), chargrid_np)
+    np.save(os.path.join(outdir_np_gt, image_file_name).replace("jpg", "npy"), gt_np)
+    gt_pd.to_pickle(os.path.join(outdir_pd_bbox, image_file_name).replace("jpg", "pkl"))
+
+
+
     '''
     Reduce image size as much as possible without losing too much information from image chargrids.
     Also adjust bounding boxes coordinates accordingly.
@@ -56,6 +90,14 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, A
                                       padding_left, padding_right, padding_top, padding_bot)
         gt_np = get_img_reduced(gt_np, reduce_x, reduce_y, padding_left, padding_right, padding_top, padding_bot)
         gt_pd = reduce_pd_bbox(gt_pd, padding_left, padding_top, reduce_x, reduce_y)
+
+
+        # save second output
+
+        np.save(os.path.join(outdir_np_chargrid_reduced, image_file_name), chargrid_np)
+        np.save(os.path.join(outdir_np_gt_reduced, image_file_name), gt_np)
+        gt_pd.to_pickle(os.path.join(outdir_pd_bbox_reduced, image_file_name).replace("npy", "pkl"))
+
     else:
         print('Cannot process empty image --> .'.format(image_file_name))
         return -1
@@ -69,6 +111,13 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, A
     chargrid_np_one_hot, gt_np_one_hot = resize_to_target(chargrid_np_one_hot, gt_np_one_hot)
     np_bbox_anchor_mask = extract_anchor_mask(gt_pd, np.shape(chargrid_np))
     np_bbox_anchor_coord = extract_anchor_coordinates(gt_pd, np.shape(chargrid_np))
+
+    # save last output
+    np.save(os.path.join(outdir_np_chargrid_1h, image_file_name), chargrid_np_one_hot)
+    np.save(os.path.join(outdir_np_gt_1h, image_file_name), gt_np_one_hot)
+    np.save(os.path.join(outdir_np_bbox_anchor_coord, image_file_name), np_bbox_anchor_coord)
+    np.save(os.path.join(outdir_np_bbox_anchor_mask, image_file_name), np_bbox_anchor_mask)
+
 
     return {
         'chargrid': chargrid_np_one_hot,
@@ -92,7 +141,6 @@ def get_one_hot_encoded_chargrid_for_list(image_list: list, out_queue: Queue, sh
     out_queue.put(processed)
 
 
-
 def process_dataset(dataset_dir_path: str, num_workers: int = 0, save_np_file:bool = False) -> list:
     if num_workers == 0:
         num_workers = os.cpu_count()//2
@@ -106,10 +154,11 @@ def process_dataset(dataset_dir_path: str, num_workers: int = 0, save_np_file:bo
 
     processes = []
     processed_dataset = Queue()
-    step_length = dataset_length//num_workers
+    step_length = dataset_length//num_workers 
     start_index = 0
 
     for i in range(num_workers):
+        # batch of images handled by each worker
         end_index = (i+1) * step_length
 
         tmp_list = list_filenames[start_index:] if end_index > dataset_length else list_filenames[start_index:end_index]
@@ -146,6 +195,8 @@ if __name__ == '__main__':
     #     single_file_converted['anchor_coords'].shape,
     #     single_file_converted['anchor_mask'].shape
     # )
+
+    check_dataset_dir_present()
 
     dataset_list = process_dataset(os.getenv('DIR_IMG'), 6)
     print(len(dataset_list))
