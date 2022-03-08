@@ -231,8 +231,8 @@ if __name__ == "__main__":
             plot_anchor(gt_1h, np_bbox_anchor_mask, np_bbox_anchor_coord)
 
             ## Save
-            np.save(os.path.join(outdir_np_chargrid_1h, list_filenames[i]), img_1h)
-            np.save(os.path.join(outdir_np_gt_1h, list_filenames[i]), gt_1h)
-            np.save(os.path.join(outdir_np_bbox_anchor_coord, list_filenames[i]), np_bbox_anchor_coord)
-            np.save(os.path.join(outdir_np_bbox_anchor_mask, list_filenames[i]), np_bbox_anchor_mask)
+            np.save(os.path.join(outdir_np_chargrid_1h, list_filenames[i]).replace("jpg", "npy"), img_1h)
+            np.save(os.path.join(outdir_np_gt_1h, list_filenames[i]).replace("jpg", "npy"), gt_1h)
+            np.save(os.path.join(outdir_np_bbox_anchor_coord, list_filenames[i]).replace("jpg", "npy"), np_bbox_anchor_coord)
+            np.save(os.path.join(outdir_np_bbox_anchor_mask, list_filenames[i]).replace("jpg", "npy"), np_bbox_anchor_mask)
             bar()

@@ -94,9 +94,9 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, A
 
         # save second output
 
-        np.save(os.path.join(outdir_np_chargrid_reduced, image_file_name), chargrid_np)
-        np.save(os.path.join(outdir_np_gt_reduced, image_file_name), gt_np)
-        gt_pd.to_pickle(os.path.join(outdir_pd_bbox_reduced, image_file_name).replace("npy", "pkl"))
+        np.save(os.path.join(outdir_np_chargrid_reduced, image_file_name).replace("jpg", "npy"), chargrid_np)
+        np.save(os.path.join(outdir_np_gt_reduced, image_file_name).replace("jpg", "npy"), gt_np)
+        gt_pd.to_pickle(os.path.join(outdir_pd_bbox_reduced, image_file_name).replace("jpg", "pkl"))
 
     else:
         print('Cannot process empty image --> .'.format(image_file_name))
@@ -113,10 +113,10 @@ def get_one_hot_encoded_chargrid(image_file_name: str) -> Union[int, Dict[str, A
     np_bbox_anchor_coord = extract_anchor_coordinates(gt_pd, np.shape(chargrid_np))
 
     # save last output
-    np.save(os.path.join(outdir_np_chargrid_1h, image_file_name), chargrid_np_one_hot)
-    np.save(os.path.join(outdir_np_gt_1h, image_file_name), gt_np_one_hot)
-    np.save(os.path.join(outdir_np_bbox_anchor_coord, image_file_name), np_bbox_anchor_coord)
-    np.save(os.path.join(outdir_np_bbox_anchor_mask, image_file_name), np_bbox_anchor_mask)
+    np.save(os.path.join(outdir_np_chargrid_1h, image_file_name).replace("jpg", "npy"), chargrid_np_one_hot)
+    np.save(os.path.join(outdir_np_gt_1h, image_file_name).replace("jpg", "npy"), gt_np_one_hot)
+    np.save(os.path.join(outdir_np_bbox_anchor_coord, image_file_name).replace("jpg", "npy"), np_bbox_anchor_coord)
+    np.save(os.path.join(outdir_np_bbox_anchor_mask, image_file_name).replace("jpg", "npy"), np_bbox_anchor_mask)
 
 
     return {

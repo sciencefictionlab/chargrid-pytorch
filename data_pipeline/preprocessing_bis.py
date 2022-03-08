@@ -183,9 +183,9 @@ if __name__ == "__main__":
                 # print(pd_bbox)
 
                 ## Save
-                np.save(os.path.join(outdir_np_chargrid_reduced, filename), img2)
-                np.save(os.path.join(outdir_np_gt_reduced, filename), gt2)
-                pd_bbox.to_pickle(os.path.join(outdir_pd_bbox_reduced, filename).replace("npy", "pkl"))
+                np.save(os.path.join(outdir_np_chargrid_reduced, filename).replace("jpg", "npy"), img2)
+                np.save(os.path.join(outdir_np_gt_reduced, filename).replace("jpg", "npy"), gt2)
+                pd_bbox.to_pickle(os.path.join(outdir_pd_bbox_reduced, filename).replace("jpg", "pkl"))
 
                 plt.imshow(img2)
                 plt.savefig(os.path.join(outdir_png_chargrid_reduced, filename).replace("npy", "png"))
