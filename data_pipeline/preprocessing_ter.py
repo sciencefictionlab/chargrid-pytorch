@@ -108,11 +108,19 @@ def discard_digits_with_low_occurence(tab_img):
     return tab_img
 
 
-def convert_to_1h(img, gt):
+def convert_to_1h_old(img, gt):
     img_1h = np.eye(target_digit)[img]
     gt_1h = np.eye(target_class)[gt]
 
     return img_1h, gt_1h
+
+def convert_to_1h(img, gt):
+    n_img_values = np.max(img) + 1
+    img_1h = np.eye(n_img_values)[img]
+    
+    n_gt_values = np.max(gt) + 1
+    gt_1h = np.eye(n_gt_values)[gt]
+    return img_1h, gt_1h    
 
 
 def resize_to_target(img_1h, gt_1h):
