@@ -35,25 +35,26 @@ from alive_progress import alive_bar
 
 from config import autoconfigure
 
-warnings.simplefilter(action='ignore', category=FutureWarning)
-warnings.simplefilter(action='ignore', category=UserWarning)
+warnings.simplefilter(action="ignore", category=FutureWarning)
+warnings.simplefilter(action="ignore", category=UserWarning)
 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from skimage.transform import resize
+
 autoconfigure()
 
 ## Hyperparameters
-dir_np_chargrid_reduced = os.getenv('DIR_NP_CHARGRID_REDUCED')
-dir_np_gt_reduced = os.getenv('DIR_NP_GT_REDUCED')
-dir_pd_bbox_reduced = os.getenv('DIR_PD_BBOX_REDUCED')
+dir_np_chargrid_reduced = os.getenv("DIR_NP_CHARGRID_REDUCED")
+dir_np_gt_reduced = os.getenv("DIR_NP_GT_REDUCED")
+dir_pd_bbox_reduced = os.getenv("DIR_PD_BBOX_REDUCED")
 
-outdir_np_chargrid_1h = os.getenv('DIR_NP_CHARGRID_1H')
-outdir_np_gt_1h = os.getenv('DIR_NP_GT_1H')
-outdir_np_bbox_anchor_mask = os.getenv('DIR_NP_BBOX_ANCHOR_MASK')
-outdir_np_bbox_anchor_coord = os.getenv('DIR_NP_BBOX_ANCHOR_COORD')
+outdir_np_chargrid_1h = os.getenv("DIR_NP_CHARGRID_1H")
+outdir_np_gt_1h = os.getenv("DIR_NP_GT_1H")
+outdir_np_bbox_anchor_mask = os.getenv("DIR_NP_BBOX_ANCHOR_MASK")
+outdir_np_bbox_anchor_coord = os.getenv("DIR_NP_BBOX_ANCHOR_COORD")
 
 target_height = 256
 target_width = 128
@@ -91,14 +92,19 @@ def print_stats_seg(tab_gt):
 
 
 def discard_digits_with_low_occurence(tab_img):
-    nb_unique_digit, count_digit = np.unique(np.concatenate([img.flatten() for img in tab_img]), return_counts=True)
+    nb_unique_digit, count_digit = np.unique(
+        np.concatenate([img.flatten() for img in tab_img]), return_counts=True
+    )
     mask_digit_to_keep = count_digit > nb_digit_threshold
 
     new_digit_nb = np.cumsum(mask_digit_to_keep)
     new_digit_nb -= 1
 
     for i in range(1, len(new_digit_nb)):
-        if new_digit_nb[len(new_digit_nb) - i] == new_digit_nb[len(new_digit_nb) - i - 1]:
+        if (
+            new_digit_nb[len(new_digit_nb) - i]
+            == new_digit_nb[len(new_digit_nb) - i - 1]
+        ):
             new_digit_nb[len(new_digit_nb) - i] = target_digit - 1
 
     for i in range(0, len(tab_img)):
@@ -114,18 +120,23 @@ def convert_to_1h_old(img, gt):
 
     return img_1h, gt_1h
 
+
 def convert_to_1h(img, gt):
     n_img_values = np.max(img) + 1
     img_1h = np.eye(n_img_values)[img]
-    
+
     n_gt_values = np.max(gt) + 1
     gt_1h = np.eye(n_gt_values)[gt]
-    return img_1h, gt_1h    
+    return img_1h, gt_1h
 
 
 def resize_to_target(img_1h, gt_1h):
-    img_1h = resize(img_1h, (target_height, target_width, target_digit), order=1, anti_aliasing=True)
-    gt_1h = resize(gt_1h, (target_height, target_width, target_class), order=1, anti_aliasing=True)
+    img_1h = resize(
+        img_1h, (target_height, target_width, target_digit), order=1, anti_aliasing=True
+    )
+    gt_1h = resize(
+        gt_1h, (target_height, target_width, target_class), order=1, anti_aliasing=True
+    )
 
     return img_1h, gt_1h
 
@@ -142,43 +153,63 @@ def extract_anchor_mask(pd_bbox, img_shape):
     np_bbox_anchor_mask = np.ones((img_shape[0], img_shape[1], 2 * nb_anchors))
     for index, row in pd_bbox.iterrows():
         if row["class"] > 0:
-            np_bbox_anchor_mask[row["top"]:row["bot"], row["left"]:row["right"], 2 * (row["class"] - 1) + 1] = 0
+            np_bbox_anchor_mask[
+                row["top"] : row["bot"],
+                row["left"] : row["right"],
+                2 * (row["class"] - 1) + 1,
+            ] = 0
     for j in range(0, nb_anchors):
         np_bbox_anchor_mask[:, :, 2 * j + 0] = 1 - np_bbox_anchor_mask[:, :, 2 * j + 1]
 
-    np_bbox_anchor_mask = resize(np_bbox_anchor_mask, (target_height, target_width, 2 * nb_anchors), order=1,
-                                 anti_aliasing=True)
+    np_bbox_anchor_mask = resize(
+        np_bbox_anchor_mask,
+        (target_height, target_width, 2 * nb_anchors),
+        order=1,
+        anti_aliasing=True,
+    )
 
     return np_bbox_anchor_mask
 
 
 def extract_anchor_coordinates(pd_bbox, img_shape):
-    pd_bbox['left'] /= img_shape[1]
-    pd_bbox['right'] /= img_shape[1]
-    pd_bbox['top'] /= img_shape[0]
-    pd_bbox['bot'] /= img_shape[0]
+    pd_bbox["left"] /= img_shape[1]
+    pd_bbox["right"] /= img_shape[1]
+    pd_bbox["top"] /= img_shape[0]
+    pd_bbox["bot"] /= img_shape[0]
 
-    pd_bbox['np_left'] = round(pd_bbox['left'] * target_width)
-    pd_bbox['np_right'] = round(pd_bbox['right'] * target_width)
-    pd_bbox['np_top'] = round(pd_bbox['top'] * target_height)
-    pd_bbox['np_bot'] = round(pd_bbox['bot'] * target_height)
+    pd_bbox["np_left"] = round(pd_bbox["left"] * target_width)
+    pd_bbox["np_right"] = round(pd_bbox["right"] * target_width)
+    pd_bbox["np_top"] = round(pd_bbox["top"] * target_height)
+    pd_bbox["np_bot"] = round(pd_bbox["bot"] * target_height)
 
-    pd_bbox['np_left'] = pd_bbox['np_left'].astype(int)
-    pd_bbox['np_right'] = pd_bbox['np_right'].astype(int)
-    pd_bbox['np_top'] = pd_bbox['np_top'].astype(int)
-    pd_bbox['np_bot'] = pd_bbox['np_bot'].astype(int)
+    pd_bbox["np_left"] = pd_bbox["np_left"].astype(int)
+    pd_bbox["np_right"] = pd_bbox["np_right"].astype(int)
+    pd_bbox["np_top"] = pd_bbox["np_top"].astype(int)
+    pd_bbox["np_bot"] = pd_bbox["np_bot"].astype(int)
 
     np_bbox_anchor_coord = np.zeros((target_height, target_width, 4 * nb_anchors))
     for index, row in pd_bbox.iterrows():
         if row["class"] > 0:
-            np_bbox_anchor_coord[row["np_top"]:row["np_bot"], row["np_left"]:row["np_right"],
-            4 * (row["class"] - 1)] = row["left"]
-            np_bbox_anchor_coord[row["np_top"]:row["np_bot"], row["np_left"]:row["np_right"],
-            4 * (row["class"] - 1) + 1] = row["top"]
-            np_bbox_anchor_coord[row["np_top"]:row["np_bot"], row["np_left"]:row["np_right"],
-            4 * (row["class"] - 1) + 2] = row["right"]
-            np_bbox_anchor_coord[row["np_top"]:row["np_bot"], row["np_left"]:row["np_right"],
-            4 * (row["class"] - 1) + 3] = row["bot"]
+            np_bbox_anchor_coord[
+                row["np_top"] : row["np_bot"],
+                row["np_left"] : row["np_right"],
+                4 * (row["class"] - 1),
+            ] = row["left"]
+            np_bbox_anchor_coord[
+                row["np_top"] : row["np_bot"],
+                row["np_left"] : row["np_right"],
+                4 * (row["class"] - 1) + 1,
+            ] = row["top"]
+            np_bbox_anchor_coord[
+                row["np_top"] : row["np_bot"],
+                row["np_left"] : row["np_right"],
+                4 * (row["class"] - 1) + 2,
+            ] = row["right"]
+            np_bbox_anchor_coord[
+                row["np_top"] : row["np_bot"],
+                row["np_left"] : row["np_right"],
+                4 * (row["class"] - 1) + 3,
+            ] = row["bot"]
 
     return np_bbox_anchor_coord
 
@@ -197,14 +228,19 @@ def plot_anchor(gt_1h, np_bbox_anchor_mask, np_bbox_anchor_coord):
 
 
 if __name__ == "__main__":
-    list_filenames = [f for f in os.listdir(dir_np_chargrid_reduced) if
-                      os.path.isfile(os.path.join(dir_np_chargrid_reduced, f))]
+    list_filenames = [
+        f
+        for f in os.listdir(dir_np_chargrid_reduced)
+        if os.path.isfile(os.path.join(dir_np_chargrid_reduced, f))
+    ]
 
     ## Load inputs
     tab_img = []
     tab_gt = []
     for i in range(0, len(list_filenames)):
-        tab_img.append(np.load(os.path.join(dir_np_chargrid_reduced, list_filenames[i])))
+        tab_img.append(
+            np.load(os.path.join(dir_np_chargrid_reduced, list_filenames[i]))
+        )
         tab_gt.append(np.load(os.path.join(dir_np_gt_reduced, list_filenames[i])))
 
     # print("tab_img shape=", np.shape(tab_img))
@@ -214,7 +250,9 @@ if __name__ == "__main__":
     # print_stats_seg(tab_gt)
 
     tab_img = discard_digits_with_low_occurence(tab_img)
-    with alive_bar(len(list_filenames), ctrl_c=False, title=f'processing files: ', bar='classic') as bar:
+    with alive_bar(
+        len(list_filenames), ctrl_c=False, title=f"processing files: ", bar="classic"
+    ) as bar:
         for i in range(0, len(list_filenames)):
             img_1h, gt_1h = convert_to_1h(tab_img[i], tab_gt[i])
             # # print(np.shape(img_1h))
@@ -228,19 +266,43 @@ if __name__ == "__main__":
             # plot_compare_input_1h(tab_gt[i], gt_1h)
 
             ## Load input
-            pd_bbox = pd.read_pickle(os.path.join(dir_pd_bbox_reduced, list_filenames[i]).replace("npy", "pkl"))
+            pd_bbox = pd.read_pickle(
+                os.path.join(dir_pd_bbox_reduced, list_filenames[i]).replace(
+                    "npy", "pkl"
+                )
+            )
 
             np_bbox_anchor_mask = extract_anchor_mask(pd_bbox, np.shape(tab_img[i]))
             # print("bbox_anchor_mask", np.shape(np_bbox_anchor_mask))
 
-            np_bbox_anchor_coord = extract_anchor_coordinates(pd_bbox, np.shape(tab_img[i]))
+            np_bbox_anchor_coord = extract_anchor_coordinates(
+                pd_bbox, np.shape(tab_img[i])
+            )
             # print("bbox_anchor_coord", np.shape(np_bbox_anchor_coord))
 
             plot_anchor(gt_1h, np_bbox_anchor_mask, np_bbox_anchor_coord)
 
             ## Save
-            np.save(os.path.join(outdir_np_chargrid_1h, list_filenames[i]).replace("jpg", "npy"), img_1h)
-            np.save(os.path.join(outdir_np_gt_1h, list_filenames[i]).replace("jpg", "npy"), gt_1h)
-            np.save(os.path.join(outdir_np_bbox_anchor_coord, list_filenames[i]).replace("jpg", "npy"), np_bbox_anchor_coord)
-            np.save(os.path.join(outdir_np_bbox_anchor_mask, list_filenames[i]).replace("jpg", "npy"), np_bbox_anchor_mask)
+            np.save(
+                os.path.join(outdir_np_chargrid_1h, list_filenames[i]).replace(
+                    "jpg", "npy"
+                ),
+                img_1h,
+            )
+            np.save(
+                os.path.join(outdir_np_gt_1h, list_filenames[i]).replace("jpg", "npy"),
+                gt_1h,
+            )
+            np.save(
+                os.path.join(outdir_np_bbox_anchor_coord, list_filenames[i]).replace(
+                    "jpg", "npy"
+                ),
+                np_bbox_anchor_coord,
+            )
+            np.save(
+                os.path.join(outdir_np_bbox_anchor_mask, list_filenames[i]).replace(
+                    "jpg", "npy"
+                ),
+                np_bbox_anchor_mask,
+            )
             bar()

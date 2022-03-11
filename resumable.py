@@ -17,13 +17,13 @@ net = ChargridNetwork(3, 64, 5, 4)
 
 optimizer_ft = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-checkpoint = torch.load('./output/epoch-1.pt')
-net.load_state_dict(checkpoint['model_state_dict'])
-optimizer_ft.load_state_dict(checkpoint['optimizer_state_dict'])
-epoch = checkpoint['epoch']
-loss = checkpoint['loss']
+checkpoint = torch.load("./output/epoch-1.pt")
+net.load_state_dict(checkpoint["model_state_dict"])
+optimizer_ft.load_state_dict(checkpoint["optimizer_state_dict"])
+epoch = checkpoint["epoch"]
+loss = checkpoint["loss"]
 
-model_dir = os.getenv('MODEL_OUTPUT_DIR')
+model_dir = os.getenv("MODEL_OUTPUT_DIR")
 
 trainloader, testloader = ChargridDataset.get_dataset()
 
@@ -34,12 +34,7 @@ loss3 = nn.SmoothL1Loss()
 
 # Decay LR by a factor of 0.1 every 7 epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
-losses = {
-    'loss1': [],
-    'loss2': [],
-    'loss3': [],
-    'combined_losses': []
-}
+losses = {"loss1": [], "loss2": [], "loss3": [], "combined_losses": []}
 
 num_epochs = 5
 for epoch in range(num_epochs):
@@ -54,18 +49,18 @@ for epoch in range(num_epochs):
 
             loss_1 = loss1(output1, label1.float())
             print(loss_1)
-            losses['loss1'].append(loss_1)
+            losses["loss1"].append(loss_1)
 
             loss_2 = loss2(output2, label2.float())
             print(loss_2)
-            losses['loss2'].append(loss_2)
+            losses["loss2"].append(loss_2)
 
             loss_3 = loss3(output3, label3.float())
             print(loss_3)
-            losses['loss3'].append(loss_3)
+            losses["loss3"].append(loss_3)
 
             final_loss = loss_1 + loss_2 + loss_3
-            losses['combined_losses'].append(final_loss)
+            losses["combined_losses"].append(final_loss)
             final_loss.backward()
             optimizer_ft.step()
 
@@ -76,18 +71,21 @@ for epoch in range(num_epochs):
 
     print("Epoch {}/{}, Loss: {:.3f}".format(epoch, num_epochs, final_loss.item()))
 
-    torch.save({
-        'epoch': epoch,
-        'model_state_dict': net.state_dict(),
-        'optimizer_state_dict': optimizer_ft.state_dict(),
-        'loss': losses,
-    }, os.path.join(model_dir, 'epoch-{}.pt'.format(epoch)))
+    torch.save(
+        {
+            "epoch": epoch,
+            "model_state_dict": net.state_dict(),
+            "optimizer_state_dict": optimizer_ft.state_dict(),
+            "loss": losses,
+        },
+        os.path.join(model_dir, "epoch-{}.pt".format(epoch)),
+    )
 
-print('================')
-print('================')
-print('================')
-print('loss1: ' + str(losses['loss1']))
-print('loss2: ' + str(losses['loss2']))
-print('loss3: ' + str(losses['loss3']))
-print('combined: ' + str(losses['combined_losses']))
-print('Finished Training')
+print("================")
+print("================")
+print("================")
+print("loss1: " + str(losses["loss1"]))
+print("loss2: " + str(losses["loss2"]))
+print("loss3: " + str(losses["loss3"]))
+print("combined: " + str(losses["combined_losses"]))
+print("Finished Training")

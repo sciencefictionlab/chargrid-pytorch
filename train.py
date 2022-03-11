@@ -20,9 +20,9 @@ def init_weights_in_last_layers(net):
     torch.nn.init.constant_(net.bbrd_f_block[6].weight, 1e-3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # in the name of reproducibility
-    device = torch.device('cuda')
+    device = torch.device("cuda")
     torch.manual_seed(0)
     autoconfigure()
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     net = net.apply(init_weights)
     init_weights_in_last_layers(net)
     net = net.to(device)
-    model_dir = os.getenv('MODEL_OUTPUT_DIR')
+    model_dir = os.getenv("MODEL_OUTPUT_DIR")
 
     loss1 = nn.BCELoss()
     loss2 = nn.BCELoss()
@@ -52,12 +52,7 @@ if __name__ == '__main__':
 
     # Decay LR by a factor of 0.1 every 7 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
-    losses = {
-        'loss1': [],
-        'loss2': [],
-        'loss3': [],
-        'combined_losses': []
-    }
+    losses = {"loss1": [], "loss2": [], "loss3": [], "combined_losses": []}
 
     num_epochs = 5
     for epoch in range(num_epochs):
@@ -75,18 +70,18 @@ if __name__ == '__main__':
 
                 loss_1 = loss1(output1, label1.float())
                 # print(loss_1)
-                losses['loss1'].append(loss_1)
+                losses["loss1"].append(loss_1)
 
                 loss_2 = loss2(output2, label2.float())
                 # print(loss_2)
-                losses['loss2'].append(loss_2)
+                losses["loss2"].append(loss_2)
 
                 loss_3 = loss3(output3, label3.float())
                 # print(loss_3)
-                losses['loss3'].append(loss_3)
+                losses["loss3"].append(loss_3)
 
                 final_loss = loss_1 + loss_2 + loss_3
-                losses['combined_losses'].append(final_loss)
+                losses["combined_losses"].append(final_loss)
                 final_loss.backward()
                 optimizer_ft.step()
 
@@ -97,18 +92,20 @@ if __name__ == '__main__':
 
         print("Epoch {}/{}, Loss: {:.3f}".format(epoch, num_epochs, final_loss.item()))
 
-        torch.save({
-            'epoch': epoch,
-            'model_state_dict': net.state_dict(),
-            'optimizer_state_dict': optimizer_ft.state_dict(),
-            'loss': losses,
-        }, os.path.join(model_dir, 'epoch-{}.pt'.format(epoch)))
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state_dict": net.state_dict(),
+                "optimizer_state_dict": optimizer_ft.state_dict(),
+                "loss": losses,
+            },
+            os.path.join(model_dir, "epoch-{}.pt".format(epoch)),
+        )
 
-
-    print('================')
-    print('================')
-    print('loss1: ' + str(losses['loss1']))
-    print('loss2: ' + str(losses['loss2']))
-    print('loss3: ' + str(losses['loss3']))
-    print('combined: ' + str(losses['combined_losses']))
-    print('Finished Training')
+    print("================")
+    print("================")
+    print("loss1: " + str(losses["loss1"]))
+    print("loss2: " + str(losses["loss2"]))
+    print("loss3: " + str(losses["loss3"]))
+    print("combined: " + str(losses["combined_losses"]))
+    print("Finished Training")

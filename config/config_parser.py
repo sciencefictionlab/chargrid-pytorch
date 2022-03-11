@@ -4,8 +4,8 @@ import os
 
 
 def autoconfigure():
-    if os.getenv('DIR_NP_CHARGRID_1H') is not None:
+    if os.getenv("DIR_NP_CHARGRID_1H") is not None:
         return
 
-    load_dotenv(dotenv_path=Path('.') / '.env', override=True)
+    load_dotenv(dotenv_path=Path(".") / ".env", override=True)
     return
