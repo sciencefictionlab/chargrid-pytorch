@@ -39,5 +39,13 @@ python resumable.py
 ## Dataset
 This implementation uses The ICDAR 2019 dataset.  
 For more information and download sources check [Niansong Zhang's work](https://github.com/zzzDavid/ICDAR-2019-SROIE)
+
+## Code Style
+We use [black](https://black.readthedocs.io/en/stable/index.html) code formatter.
+Before committing please run following in your terminal from the project root directory.
+```commandline
+black ./*/*.py
+```
+
 ## License
 [GPLV3](https://choosealicense.com/licenses/gpl-3.0/)
